@@ -8,4 +8,4 @@ git clone https://github.com/aigerim055/catalog_parsing.git
 2. Активация виртуального окружения
     `source venv/bin/activate`
 3. Установка библиотек
-    `pip install -r requirements.txt
+    `pip install -r requirements.txt`
