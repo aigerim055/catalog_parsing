@@ -27,7 +27,7 @@ response = requests.post('https://diler.mosplitka.ru/', params=params, data=data
 
 class Parser:
 
-    def get_html():
+    def get_html(params: str=''):
         """ Функция для получения html кода """
         url = 'https://diler.mosplitka.ru/catalog/?login=yes'
         response = session.post(url=url, params=params, data=data)
@@ -115,6 +115,11 @@ class Parser:
 
             for a in articul:
                 articul = a.text
+                if articul == articul:
+                    del articul
+                    # raise ValueError('!'*100)
+                articul = a.text
+                    
 
             for a in title:
                 title = a.text
@@ -170,17 +175,17 @@ class Parser:
         return result
 
 
-    def pages(self):
-        pages = '?PAGEN_1='
-        html = self.get_html()
-        pages: ResultSet = html.find('div', class_='navigarion-catalog')#.find('div', class_='navigation-pages').find_all('a')
+    # def pages(self):
+    #     pages = '?PAGEN_1='
+    #     html = self.get_html()
+    #     pages: ResultSet = html.find('div', class_='navigarion-catalog')#.find('div', class_='navigation-pages').find_all('a')
 
     def get_last_page(html):
         """ Получение количества страниц """
         soup = BeautifulSoup(html, 'lxml')
-        total_pages = soup.find('div', class_='navigation-catalog').find('div', class_='navigation-pages').find_all('a')[-2]
-        last_page = total_pages.text
+        last_page = soup.find('div', class_='navigation-pages').find(id="navigation_1_next_page").find_previous_sibling().text
         return int(last_page)
+        
     
     def write_to_csv(data: list):
         """ Запись данных в csv файл """
@@ -190,7 +195,7 @@ class Parser:
             csv_writer.writeheader()
             csv_writer.writerows(data)
     
-    OUT_XLSX_FILENAME = 'test.xlsx'
+    OUT_XLSX_FILENAME = 'res.xlsx'
     def write_to_excel(file_name, data):
         if not len(data):
             return None
@@ -215,16 +220,19 @@ class Parser:
 
 
     html = get_html()
-
+    # get_last_page(html)
     result = []
-    for page in range(1, get_last_page(html)):
+    for page in range(1, get_last_page(html)+1):
+        html = get_html(params=f'?PAGEN_1={page}')
         cards = get_card_from_html(html=html)
+        # print(cards)
+        # print('='*100)
         list_of_cards = parse_data_from_cards(cards=cards)
         print(list_of_cards)
         result.extend(list_of_cards)
         write_to_excel(OUT_XLSX_FILENAME, result)
-        # print(result)
-    #     write_to_csv(result)
+        print(result)
+        write_to_csv(result)
 
 
 
@@ -232,3 +240,9 @@ class Parser:
 if __name__ == '__main__':
     obj = Parser()
     print(obj)
+
+
+
+# TODO: 
+# FIX: парсит два товара каждый раз через 10-15 товаров, найти где баг (SG912000Nб SG912000N\ 4BT)
+# логин и пароль закинуть в .env
