@@ -3,7 +3,7 @@ from bs4 import ResultSet
 import requests
 from bs4 import BeautifulSoup
 import xlsxwriter 
-# from decouple import config
+from decouple import config
 
 
 session = requests.Session()
@@ -16,11 +16,9 @@ params = {
 data = {
     'backurl': '/',
     'AUTH_FORM': 'Y',
-    'TYPE': 'AUTH',
-    'USER_LOGIN': '553801042839',
-    'USER_PASSWORD': 'u9aADH35BKtN2CK',
-    # 'USER_LOGIN': config('LOGIN'),
-    # 'USER_PASSWORD': config('PASSWORD'),
+    'TYPE': 'AUTH', 
+    'USER_LOGIN': config('LOGIN'),
+    'USER_PASSWORD': config('PASSWORD'),
 }
 
 response = requests.post('https://diler.mosplitka.ru/', params=params, data=data)
@@ -222,7 +220,7 @@ class Parser:
     html = get_html()
     # get_last_page(html)
     result = []
-    for page in range(1, get_last_page(html)+1):
+    for page in range(1, 2):#get_last_page(html)+1):
         html = get_html(params=f'?PAGEN_1={page}')
         cards = get_card_from_html(html=html)
         # print(cards)
@@ -245,4 +243,3 @@ if __name__ == '__main__':
 
 # TODO: 
 # FIX: парсит два товара каждый раз через 10-15 товаров, найти где баг (SG912000Nб SG912000N\ 4BT)
-# логин и пароль закинуть в .env
