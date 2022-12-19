@@ -7,12 +7,9 @@ from decouple import config
 
 
 session = requests.Session()
-url = 'https://diler.mosplitka.ru/'
-
 params = {
     'login': 'yes',
 }
-
 data = {
     'backurl': '/',
     'AUTH_FORM': 'Y',
@@ -21,29 +18,25 @@ data = {
     'USER_PASSWORD': config('PASSWORD'),
 }
 
-response = requests.post('https://diler.mosplitka.ru/', params=params, data=data)
-
 class Parser:
 
-    def get_html(params: str=''):
+    def get_html(params:str=''):
         """ Функция для получения html кода """
-        url = 'https://diler.mosplitka.ru/catalog/?login=yes'
+        url = f'https://diler.mosplitka.ru/catalog/{params}/?login=yes'
         response = session.post(url=url, params=params, data=data)
         html = response.text
         return html
 
-
     def get_card_from_html(html: str) -> ResultSet:
         """ Функция для получения карточек из html-кода """
         soup = BeautifulSoup(html, 'lxml')
-        cards: ResultSet = soup.find_all('div', class_='catalog__result-item')
+        cards: ResultSet = soup.find('div', class_="catalog__inner-container catalog__inner-container--content").find_all('div', class_='catalog__result-item')
         return cards
 
     def parse_data_from_cards(cards: ResultSet) -> list:
         """ Фильтрация данных из карточек """
         result = []
-        for card in cards:
-            
+        for card in cards: 
                 
             try:
                 articul = card.find_all('div', class_='catalog__vendor-code')
@@ -112,12 +105,7 @@ class Parser:
 
 
             for a in articul:
-                articul = a.text
-                if articul == articul:
-                    del articul
-                    # raise ValueError('!'*100)
-                articul = a.text
-                    
+                articul = a.text                    
 
             for a in title:
                 title = a.text
@@ -172,19 +160,12 @@ class Parser:
             result.append(obj)
         return result
 
-
-    # def pages(self):
-    #     pages = '?PAGEN_1='
-    #     html = self.get_html()
-    #     pages: ResultSet = html.find('div', class_='navigarion-catalog')#.find('div', class_='navigation-pages').find_all('a')
-
     def get_last_page(html):
         """ Получение количества страниц """
         soup = BeautifulSoup(html, 'lxml')
         last_page = soup.find('div', class_='navigation-pages').find(id="navigation_1_next_page").find_previous_sibling().text
         return int(last_page)
         
-    
     def write_to_csv(data: list):
         """ Запись данных в csv файл """
         fieldnames = ['articul', 'title', 'description', 'description_packing', 'weight','price', 'in_stock_podolsk', 'in_stock_krasnodar']
@@ -218,28 +199,17 @@ class Parser:
 
 
     html = get_html()
-    # get_last_page(html)
     result = []
-    for page in range(1, 2):#get_last_page(html)+1):
+    for page in range(1, get_last_page(html)+1):
         html = get_html(params=f'?PAGEN_1={page}')
         cards = get_card_from_html(html=html)
-        # print(cards)
-        # print('='*100)
         list_of_cards = parse_data_from_cards(cards=cards)
-        print(list_of_cards)
         result.extend(list_of_cards)
         write_to_excel(OUT_XLSX_FILENAME, result)
         print(result)
         write_to_csv(result)
 
 
-
-
 if __name__ == '__main__':
     obj = Parser()
     print(obj)
-
-
-
-# TODO: 
-# FIX: парсит два товара каждый раз через 10-15 товаров, найти где баг (SG912000Nб SG912000N\ 4BT)
