@@ -2,3 +2,4 @@ venv/
 .~lock.test.xlsx#
 .env
 .~lock.res.xlsx#
+res.xlsx

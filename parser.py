@@ -49,42 +49,42 @@ class Parser:
                 title = ''
             
             try:
-                desc1 = card.find('div', class_='catalog__item-descript').find('div', class_="catalog__descript-container").find('div', class_='catalog__characteristics').find_all('div', class_="catalog__item-country")
+                country = card.find('div', class_='catalog__item-descript').find('div', class_="catalog__descript-container").find('div', class_='catalog__characteristics').find_all('div', class_="catalog__item-country")
             except AttributeError:
-                desc1 = ''
+                country = ''
 
             try:
-                desc2 = card.find('div', class_='catalog__item-descript').find('div', class_="catalog__descript-container").find('div', class_='catalog__characteristics').find_all('div', class_="catalog__item-brand")
+                brand = card.find('div', class_='catalog__item-descript').find('div', class_="catalog__descript-container").find('div', class_='catalog__characteristics').find_all('div', class_="catalog__item-brand")
             except AttributeError:
-                desc2 = ''
+                brand = ''
 
             try:
-                desc3 = card.find('div', class_='catalog__item-descript').find('div', class_="catalog__descript-container").find('div', class_='catalog__characteristics').find_all('div', class_="catalog__item-collection")
+                collection = card.find('div', class_='catalog__item-descript').find('div', class_="catalog__descript-container").find('div', class_='catalog__characteristics').find_all('div', class_="catalog__item-collection")
             except AttributeError:
-                desc3 = ''
+                collection = ''
 
             try:
-                desc4 = card.find('div', class_='catalog__item-descript').find('div', class_="catalog__descript-container").find('div', class_='catalog__characteristics').find_all('div', class_="catalog__item-color")
+                color = card.find('div', class_='catalog__item-descript').find('div', class_="catalog__descript-container").find('div', class_='catalog__characteristics').find_all('div', class_="catalog__item-color")
             except AttributeError:
-                desc4 = ''
+                color = ''
 
             try:
-                desc5 = card.find('div', class_='catalog__item-descript').find('div', class_="catalog__descript-container").find('div', class_='catalog__characteristics').find_all('div', class_="catalog__item-size")
+                surface = card.find('div', class_='catalog__item-descript').find('div', class_="catalog__descript-container").find('div', class_='catalog__characteristics').find_all('div', class_="catalog__item-size")
             except AttributeError:
-                desc5 = ''
+                surface = ''
 
             try:
-                desc6 = card.find('div', class_='catalog__packing').find_all('div', class_="catalog__packing-size")
+                packing_size = card.find('div', class_='catalog__packing').find('div', class_="catalog__packing-size").text
             except AttributeError:
-                desc6 = ''
+                packing_size = ''
 
             try:
-                desc7 = card.find('div', class_='catalog__packing').find_all('div', class_="catalog__packing-completeness")
+                packing_completeness = card.find('div', class_='catalog__packing').find_all('div', class_="catalog__packing-completeness")
             except AttributeError:
-                desc7 = ''
+                packing_completeness = ''
             
             try:
-                weight = card.find_all('div', class_='catalog__pack-weight')
+                weight = card.find('div', class_='catalog__pack-weight').text
             except AttributeError:
                 weight = ''
 
@@ -110,32 +110,29 @@ class Parser:
             for a in title:
                 title = a.text
 
-            for a in desc1:
-                desc1 = a.text + ' '
+            for a in country:
+                country = a.text[8:]
             
-            for a in desc2:
-                desc2 = a.text + ' '
+            for a in brand:
+                brand = a.text[15:]
 
-            for a in desc3:
-                desc3 = a.text + ' '
+            for a in color:
+                color = a.text[6:]
 
-            for a in desc4:
-                desc4 = a.text + ' '
+            for a in collection:
+                collection = a.text[11:]
 
-            for a in desc5:
-                desc5 = a.text + ' '
+            for a in surface:
+                surface = a.text[12:]
 
-            for a in desc6:
-                desc6 = a.text + ' '
+            for a in packing_completeness:
+                packing_completeness = a.text.strip(' шт/уп')
 
-            for a in desc7:
-                desc7 = a.text.strip() + ' '
-
-            for a in weight:
-                weight = a.text.strip()
+            # for a in weight:
+            #     weight = a#.strip(' кг')
 
             for a in price:
-                price = a.text.strip()
+                price = a.text.strip(' \n ')
 
             for a in in_stock_podolsk:
                 in_stock_podolsk = a.text
@@ -143,15 +140,19 @@ class Parser:
             for a in in_stock_krasnodar:
                 in_stock_krasnodar = a.text  
 
-            description = desc1+ desc2 + desc3 + desc4 + desc5 
-            description_packing = f'{desc6} {desc7}'
+     
 
             obj = {
                'articul': articul,
                'title': title,
-               'description': description,
-               'description_packing': description_packing,
-               'weight': weight,
+               'country': country,
+               'brand': brand,
+               'collection': collection,
+               'color': color,
+               'surface': surface,
+               'packing_size': packing_size,
+               'packing_completeness': packing_completeness,
+               'weight': weight.strip(' кг\n\t\''),
                'price': price,
                'in_stock_podolsk': in_stock_podolsk,
                'in_stock_krasnodar': in_stock_krasnodar,
@@ -182,7 +183,7 @@ class Parser:
         with xlsxwriter.Workbook(file_name) as workbook:
             ws = workbook.add_worksheet()
             bold = workbook.add_format({'bold': True})
-            headers = ['артикул', 'наименование товара', 'описание товара', 'пакинг', 'вес упаковки', 'цена базовая', 'наличие Подольск', 'наличие Краснодар']        
+            headers = ['артикул', 'наименование товара', 'страна', 'производитель', 'коллекция', 'цвет', 'поверхность' , 'пакинг (м2/уп)', 'пакинг (шт/уп)','вес упаковки (кг)', 'цена базовая', 'наличие Подольск', 'наличие Краснодар']        
 
             for col, h in enumerate(headers):
                 ws.write_string(0, col, h, cell_format=bold)
@@ -190,26 +191,38 @@ class Parser:
             for row, item in enumerate(data, start=1):
                 ws.write_string(row, 0, item['articul'])
                 ws.write_string(row, 1, item['title'])
-                ws.write_string(row, 2, item['description'])
-                ws.write_string(row, 3, item['description_packing'])
-                ws.write_string(row, 4, item['weight'])
-                ws.write_string(row, 5, item['price'])
-                ws.write_string(row, 6, item['in_stock_podolsk'])
-                ws.write_string(row, 7, item['in_stock_krasnodar'])
+                ws.write_string(row, 2, item['country'])
+                ws.write_string(row, 3, item['brand'])
+                ws.write_string(row, 4, item['collection'])
+                ws.write_string(row, 5, item['color'])
+                ws.write_string(row, 6, item['surface'])
+                ws.write_string(row, 7, item['packing_size'])
+                ws.write_string(row, 8, item['packing_completeness'])
+                ws.write_string(row, 9, item['weight'])
+                ws.write_string(row, 10, item['price'])
+                ws.write_string(row, 11, item['in_stock_podolsk'])
+                ws.write_string(row, 12, item['in_stock_krasnodar'])
 
 
     html = get_html()
     result = []
-    for page in range(1, get_last_page(html)+1):
+    for page in range(1, 10):#get_last_page(html)+1):
         html = get_html(params=f'?PAGEN_1={page}')
         cards = get_card_from_html(html=html)
         list_of_cards = parse_data_from_cards(cards=cards)
         result.extend(list_of_cards)
+        print(list_of_cards)
         write_to_excel(OUT_XLSX_FILENAME, result)
         print(result)
-        write_to_csv(result)
+        # write_to_csv(result)
 
 
 if __name__ == '__main__':
     obj = Parser()
     print(obj)
+
+
+
+# TODO:
+# fix packing_size.strip(м2/уп)
+# fix price.strip(руб)
