@@ -69,6 +69,11 @@ class Parser:
                 color = ''
 
             try:
+                size = card.find('div', class_='catalog__item-descript').find('div', class_="catalog__descript-container").find('div', class_='catalog__characteristics').find('div', class_="catalog__item-size")
+            except AttributeError:
+                size = ''
+
+            try:
                 surface = card.find('div', class_='catalog__item-descript').find('div', class_="catalog__descript-container").find('div', class_='catalog__characteristics').find_all('div', class_="catalog__item-size")
             except AttributeError:
                 surface = ''
@@ -122,8 +127,11 @@ class Parser:
             for a in collection:
                 collection = a.text[11:]
 
+            for a in size:
+                size = a.text[8:]
+
             for a in surface:
-                surface = a.text[12:]
+                surface = a.text[13:]
 
             for a in packing_completeness:
                 packing_completeness = a.text.strip(' шт/уп')
@@ -143,19 +151,20 @@ class Parser:
      
 
             obj = {
-               'articul': articul,
-               'title': title,
-               'country': country,
-               'brand': brand,
-               'collection': collection,
-               'color': color,
-               'surface': surface,
-               'packing_size': packing_size,
-               'packing_completeness': packing_completeness,
-               'weight': weight.strip(' кг\n\t\''),
-               'price': price,
-               'in_stock_podolsk': in_stock_podolsk,
-               'in_stock_krasnodar': in_stock_krasnodar,
+                'articul': articul,
+                'title': title,
+                'country': country,
+                'brand': brand,
+                'collection': collection,
+                'color': color,
+                'size': size,
+                'surface': surface,
+                'packing_size': packing_size,
+                'packing_completeness': packing_completeness,
+                'weight': weight.strip(' кг\n\t\''),
+                'price': price,
+                'in_stock_podolsk': in_stock_podolsk,
+                'in_stock_krasnodar': in_stock_krasnodar,
             }
 
             result.append(obj)
@@ -175,15 +184,16 @@ class Parser:
             csv_writer.writeheader()
             csv_writer.writerows(data)
     
-    OUT_XLSX_FILENAME = 'res.xlsx'
+    OUT_XLSX_FILENAME = 'catalog.xlsx'
     def write_to_excel(file_name, data):
+        """ Запись данных в xlsx файл """
         if not len(data):
             return None
 
         with xlsxwriter.Workbook(file_name) as workbook:
             ws = workbook.add_worksheet()
             bold = workbook.add_format({'bold': True})
-            headers = ['артикул', 'наименование товара', 'страна', 'производитель', 'коллекция', 'цвет', 'поверхность' , 'пакинг (м2/уп)', 'пакинг (шт/уп)','вес упаковки (кг)', 'цена базовая', 'наличие Подольск', 'наличие Краснодар']        
+            headers = ['артикул', 'наименование товара', 'страна', 'производитель', 'коллекция', 'цвет', 'размер','поверхность' , 'пакинг', 'пакинг (шт/уп)','вес упаковки (кг)', 'цена базовая', 'наличие Подольск', 'наличие Краснодар']        
 
             for col, h in enumerate(headers):
                 ws.write_string(0, col, h, cell_format=bold)
@@ -195,18 +205,19 @@ class Parser:
                 ws.write_string(row, 3, item['brand'])
                 ws.write_string(row, 4, item['collection'])
                 ws.write_string(row, 5, item['color'])
-                ws.write_string(row, 6, item['surface'])
-                ws.write_string(row, 7, item['packing_size'])
-                ws.write_string(row, 8, item['packing_completeness'])
-                ws.write_string(row, 9, item['weight'])
-                ws.write_string(row, 10, item['price'])
-                ws.write_string(row, 11, item['in_stock_podolsk'])
-                ws.write_string(row, 12, item['in_stock_krasnodar'])
+                ws.write_string(row, 6, item['size'])
+                ws.write_string(row, 7, item['surface'])
+                ws.write_string(row, 8, item['packing_size'])
+                ws.write_string(row, 9, item['packing_completeness'])
+                ws.write_string(row, 10, item['weight'])
+                ws.write_string(row, 11, item['price'])
+                ws.write_string(row, 12, item['in_stock_podolsk'])
+                ws.write_string(row, 13, item['in_stock_krasnodar'])
 
 
     html = get_html()
     result = []
-    for page in range(1, 10):#get_last_page(html)+1):
+    for page in range(1, get_last_page(html)+1):
         html = get_html(params=f'?PAGEN_1={page}')
         cards = get_card_from_html(html=html)
         list_of_cards = parse_data_from_cards(cards=cards)

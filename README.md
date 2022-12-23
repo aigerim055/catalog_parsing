@@ -1,4 +1,3 @@
-# Запуск проекта
 
 git clone https://github.com/aigerim055/catalog_parsing.git
 

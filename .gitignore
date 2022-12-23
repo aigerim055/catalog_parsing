@@ -1,5 +1,3 @@
 venv/
-.~lock.test.xlsx#
+.~lock.catalog.xlsx#
 .env
-.~lock.res.xlsx#
-res.xlsx
