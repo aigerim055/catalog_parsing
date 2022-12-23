@@ -79,15 +79,25 @@ class Parser:
                 surface = ''
 
             try:
-                packing_size = card.find('div', class_='catalog__packing').find('div', class_="catalog__packing-size").text
+                packing_size = card.find('div', class_='catalog__packing').find('div', class_="catalog__packing-size").text[:-5]
             except AttributeError:
                 packing_size = ''
+
+            try:
+                packing_size_q = card.find('div', class_='catalog__packing').find('div', class_="catalog__packing-size").text[-5:]
+            except AttributeError:
+                packing_size_q = ''
 
             try:
                 packing_completeness = card.find('div', class_='catalog__packing').find_all('div', class_="catalog__packing-completeness")
             except AttributeError:
                 packing_completeness = ''
             
+            try:
+                packing_completeness_q = card.find('div', class_='catalog__packing').find_all('div', class_="catalog__packing-completeness")
+            except AttributeError:
+                packing_completeness_q = ''
+
             try:
                 weight = card.find('div', class_='catalog__pack-weight').text
             except AttributeError:
@@ -136,14 +146,19 @@ class Parser:
             for a in packing_completeness:
                 packing_completeness = a.text.strip(' шт/уп')
 
+            for a in packing_completeness_q:
+                packing_completeness_q = a.text[-5:].strip()
+
             # for a in weight:
             #     weight = a#.strip(' кг')
 
             for a in price:
-                price = a.text.strip(' \n ')
+                price = a.text.strip(' \n ')[:-9]
+                price_q = a.text.strip('\n ')[-9:]
 
             for a in in_stock_podolsk:
-                in_stock_podolsk = a.text
+                in_stock_podolsk = a.text[:-2].strip()
+                in_stock_podolsk_q = a.text[-2:].strip()
 
             for a in in_stock_krasnodar:
                 in_stock_krasnodar = a.text  
@@ -160,10 +175,14 @@ class Parser:
                 'size': size,
                 'surface': surface,
                 'packing_size': packing_size,
+                'packing_size_q': packing_size_q,
                 'packing_completeness': packing_completeness,
+                'packing_completeness_q': packing_completeness_q,
                 'weight': weight.strip(' кг\n\t\''),
                 'price': price,
+                'price_q': price_q,
                 'in_stock_podolsk': in_stock_podolsk,
+                'in_stock_podolsk_q': in_stock_podolsk_q,
                 'in_stock_krasnodar': in_stock_krasnodar,
             }
 
@@ -193,7 +212,7 @@ class Parser:
         with xlsxwriter.Workbook(file_name) as workbook:
             ws = workbook.add_worksheet()
             bold = workbook.add_format({'bold': True})
-            headers = ['артикул', 'наименование товара', 'страна', 'производитель', 'коллекция', 'цвет', 'размер','поверхность' , 'пакинг', 'пакинг (шт/уп)','вес упаковки (кг)', 'цена базовая', 'наличие Подольск', 'наличие Краснодар']        
+            headers = ['артикул', 'наименование товара', 'страна', 'производитель', 'коллекция', 'цвет', 'размер','поверхность' , 'упаковка квадратура', 'размерность упаковки', 'пакинг','упаковка кол-во','вес упаковки (кг)', 'цена базовая','размерность цены', 'наличие Подольск','размерность наличия', 'наличие Краснодар']        
 
             for col, h in enumerate(headers):
                 ws.write_string(0, col, h, cell_format=bold)
@@ -208,11 +227,15 @@ class Parser:
                 ws.write_string(row, 6, item['size'])
                 ws.write_string(row, 7, item['surface'])
                 ws.write_string(row, 8, item['packing_size'])
-                ws.write_string(row, 9, item['packing_completeness'])
-                ws.write_string(row, 10, item['weight'])
-                ws.write_string(row, 11, item['price'])
-                ws.write_string(row, 12, item['in_stock_podolsk'])
-                ws.write_string(row, 13, item['in_stock_krasnodar'])
+                ws.write_string(row, 9, item['packing_size_q'])
+                ws.write_string(row, 10, item['packing_completeness'])
+                ws.write_string(row, 11, item['packing_completeness_q'])
+                ws.write_string(row, 12, item['weight'])
+                ws.write_string(row, 13, item['price'])
+                ws.write_string(row, 14, item['price_q'])
+                ws.write_string(row, 15, item['in_stock_podolsk'])
+                ws.write_string(row, 16, item['in_stock_podolsk_q'])
+                ws.write_string(row, 17, item['in_stock_krasnodar'])
 
 
     html = get_html()
