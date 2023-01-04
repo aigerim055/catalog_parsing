@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 import xlsxwriter 
 from decouple import config
-
+import time
 
 session = requests.Session()
 params = {
@@ -18,6 +18,7 @@ data = {
     'USER_PASSWORD': config('PASSWORD'),
 }
 
+start_time = time.time()
 class Parser:
 
     def get_html(params:str=''):
@@ -240,14 +241,19 @@ class Parser:
 
     html = get_html()
     result = []
+    
     for page in range(1, get_last_page(html)+1):
+        # start_time = time.time()
         html = get_html(params=f'?PAGEN_1={page}')
         cards = get_card_from_html(html=html)
         list_of_cards = parse_data_from_cards(cards=cards)
         result.extend(list_of_cards)
-        print(list_of_cards)
+        # print(list_of_cards)
         write_to_excel(OUT_XLSX_FILENAME, result)
-        print(result)
+        # print(result)
+        print(f"[INFO] Обработал страницу {page}")
+        finish_time = time.time() - start_time
+    print(f"Затраченное на работу скрипта время: {finish_time}")
         # write_to_csv(result)
 
 
