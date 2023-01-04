@@ -24,18 +24,13 @@ data = {
 start_time = time.time()
 result = []
 
-async def get_page_data(session, page,  timeout=120000,
-                                        relax=0.1,
-                                        limit=None,
-                                        reset_webhook=None,
-                                        fast: bool = True,
-                                        error_sleep: int = 5):
+async def get_page_data(session, page):
     url = f'https://diler.mosplitka.ru/catalog/?PAGEN_1={page}?login=yes'
     # response = await session.post(url=url, data=data )
     # response_text = await response.text()
     # print(response_text)
     try:
-        async with session.get(url=url, timeout=12000000) as response:
+        async with session.get(url=url) as response:
             # print(response)
             response_text = await response.text()
             # print(response_text)
@@ -244,20 +239,13 @@ async def get_page_data(session, page,  timeout=120000,
         print('timeout!')
 
 
-async def gather_data(timeout=120000,
-                            relax=0.1,
-                            limit=None,
-                            reset_webhook=None,
-                            fast: bool = True,
-                            error_sleep: int = 5):
+async def gather_data():
 
     url = f'https://diler.mosplitka.ru/catalog/?login=yes'
 
     async with aiohttp.ClientSession() as session:
         proxy_auth = aiohttp.BasicAuth(config('LOGIN'), config('PASSWORD'))
-        response = await session.post(url=url, data=data, 
-                                                # proxy="http://proxy.com",
-                                                proxy_auth=proxy_auth)
+        response = await session.post(url=url)
         soup = BeautifulSoup(await response.text(), "lxml")
         # print(soup)
         pages_count = int(soup.find('div', class_='navigation-pages').find(id="navigation_1_next_page").find_previous_sibling().text)
