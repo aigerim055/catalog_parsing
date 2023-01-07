@@ -2,9 +2,7 @@ import datetime
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 import aiohttp
-import aiofiles
 import asyncio
-from aiocsv import AsyncWriter
 from decouple import config
 import time
 import csv
@@ -17,26 +15,27 @@ start_time = time.time()
 result = []
 cur_time = datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')
 
+ua = UserAgent()
+    
+headers = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+    'User-Agent': ua.random
+}
+data = {
+    'backurl': '/',
+    'AUTH_FORM': 'Y',
+    'TYPE': 'AUTH', 
+    'USER_LOGIN': config('LOGIN'),
+    'USER_PASSWORD': config('PASSWORD'),
+}
+
 async def get_page_data(session,page):
     
-    ua = UserAgent()
     
-    headers = {
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-        'User-Agent': ua.random
-    }
-    data = {
-        'backurl': '/',
-        'AUTH_FORM': 'Y',
-        'TYPE': 'AUTH', 
-        'USER_LOGIN': config('LOGIN'),
-        'USER_PASSWORD': config('PASSWORD'),
-    }
-    url = f'https://diler.mosplitka.ru/catalog'#/?PAGEN_1={page}'
+    url = f'https://diler.mosplitka.ru/catalog'
     response = await session.post(url=url, data=data, headers=headers, timeout=3000)
     soup = BeautifulSoup(await response.text(), "lxml")
-    # print(soup)
-    # await asyncio.sleep(0.2)
+
     async with aiohttp.ClientSession(trust_env=True, timeout=3000) as session:
         
         try:
@@ -51,8 +50,6 @@ async def get_page_data(session,page):
 
 
         for card in cards: 
-                # print(card)
-                    
                 try:
                     articul = card.find_all('div', class_='catalog__vendor-code')
                 except AttributeError:
@@ -202,37 +199,34 @@ async def get_page_data(session,page):
                 }
 
                 result.append(obj)
-                # print(result)
 
-        
+        # def write_to_csv(data: list):
+        #     """ Запись данных в csv файл """
+        #     fieldnames = ['articul',
+        #                             'title',
+        #                             'country',
+        #                             'brand',
+        #                             'collection',
+        #                             'color',
+        #                             'size',
+        #                             'surface',
+        #                             'packing_size',
+        #                             'packing_size_q',
+        #                             'packing_completeness',
+        #                             'packing_completeness_q',
+        #                             'weight',
+        #                             'price',
+        #                             'price_q',
+        #                             'in_stock_podolsk',
+        #                             'in_stock_podolsk_q',
+        #                             'in_stock_krasnodar']
+        #     with open('test.csv', 'w') as file:
+        #         csv_writer = csv.DictWriter(file, fieldnames=fieldnames)
+        #         csv_writer.writeheader()
+        #         csv_writer.writerows(data)
 
-        def write_to_csv(data: list):
-            """ Запись данных в csv файл """
-            fieldnames = ['articul',
-                                    'title',
-                                    'country',
-                                    'brand',
-                                    'collection',
-                                    'color',
-                                    'size',
-                                    'surface',
-                                    'packing_size',
-                                    'packing_size_q',
-                                    'packing_completeness',
-                                    'packing_completeness_q',
-                                    'weight',
-                                    'price',
-                                    'price_q',
-                                    'in_stock_podolsk',
-                                    'in_stock_podolsk_q',
-                                    'in_stock_krasnodar']
-            with open('test.csv', 'w') as file:
-                csv_writer = csv.DictWriter(file, fieldnames=fieldnames)
-                csv_writer.writeheader()
-                csv_writer.writerows(data)
-
-        # print(result)
-        write_to_csv(result)
+        # # print(result)
+        # write_to_csv(result)
         print(f"[INFO] Обработал страницу {page}")
 
 
@@ -251,45 +245,27 @@ def write_to_excel(file_name, data):
             ws.write_string(0, col, h, cell_format=bold)
 
             for row, item in enumerate(data, start=1):
-                    ws.write_string(row, 0, item['articul'])
-                    ws.write_string(row, 1, item['title'])
-                    ws.write_string(row, 2, item['country'])
-                    ws.write_string(row, 3, item['brand'])
-                    ws.write_string(row, 4, item['collection'])
-                    ws.write_string(row, 5, item['color'])
-                    ws.write_string(row, 6, item['size'])
-                    ws.write_string(row, 7, item['surface'])
-                    ws.write_string(row, 8, item['packing_size'])
-                    ws.write_string(row, 9, item['packing_size_q'])
-                    ws.write_string(row, 10, item['packing_completeness'])
-                    ws.write_string(row, 11, item['packing_completeness_q'])
-                    ws.write_string(row, 12, item['weight'])
-                    ws.write_string(row, 13, item['price'])
-                    ws.write_string(row, 14, item['price_q'])
-                    ws.write_string(row, 15, item['in_stock_podolsk'])
-                    ws.write_string(row, 16, item['in_stock_podolsk_q'])
-                    ws.write_string(row, 17, item['in_stock_krasnodar'])
-
+                ws.write_string(row, 0, item['articul'])
+                ws.write_string(row, 1, item['title'])
+                ws.write_string(row, 2, item['country'])
+                ws.write_string(row, 3, item['brand'])
+                ws.write_string(row, 4, item['collection'])
+                ws.write_string(row, 5, item['color'])
+                ws.write_string(row, 6, item['size'])
+                ws.write_string(row, 7, item['surface'])
+                ws.write_string(row, 8, item['packing_size'])
+                ws.write_string(row, 9, item['packing_size_q'])
+                ws.write_string(row, 10, item['packing_completeness'])
+                ws.write_string(row, 11, item['packing_completeness_q'])
+                ws.write_string(row, 12, item['weight'])
+                ws.write_string(row, 13, item['price'])
+                ws.write_string(row, 14, item['price_q'])
+                ws.write_string(row, 15, item['in_stock_podolsk'])
+                ws.write_string(row, 16, item['in_stock_podolsk_q'])
+                ws.write_string(row, 17, item['in_stock_krasnodar'])
 
 
 async def gather_data():
-    ua = UserAgent()
-    
-    headers = {
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-        'User-Agent': ua.random
-    }
-    
-    params = {
-    'login': 'yes',
-    }
-    data = {
-        'backurl': '/',
-        'AUTH_FORM': 'Y',
-        'TYPE': 'AUTH', 
-        'USER_LOGIN': config('LOGIN'),
-        'USER_PASSWORD': config('PASSWORD'),
-    }
 
     url = f'https://diler.mosplitka.ru/catalog/?login=yes'
 
@@ -303,24 +279,14 @@ async def gather_data():
 
         for page in range(1,pages_count + 1):
             await asyncio.sleep(1.4)
-            # print(page)
             task = asyncio.create_task(get_page_data(session, page))
             tasks.append(task)
-            # print(tasks)
-            # print(f"[INFO] Обработал страницу {page}")
-
         await asyncio.gather(*tasks)
 
 
 def main():
     asyncio.run(gather_data())
     write_to_excel(OUT_XLSX_FILENAME, result)
-
-    
-
-
-    
-    
     finish_time = time.time() - start_time
     print(f"Затраченное на работу скрипта время: {finish_time}")
 
