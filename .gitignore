@@ -1,3 +1,4 @@
 venv/
 .~lock.catalog.xlsx#
 .env
+bot.py

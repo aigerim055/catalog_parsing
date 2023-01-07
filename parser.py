@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import xlsxwriter 
 from decouple import config
 import time
+from numba import jit
 
 session = requests.Session()
 params = {
@@ -241,8 +242,9 @@ class Parser:
 
     html = get_html()
     result = []
+
     
-    for page in range(1, get_last_page(html)+1):
+    for page in range(1, 11):#get_last_page(html)+1):
         # start_time = time.time()
         html = get_html(params=f'?PAGEN_1={page}')
         cards = get_card_from_html(html=html)
@@ -254,8 +256,14 @@ class Parser:
         print(f"[INFO] Обработал страницу {page}")
         finish_time = time.time() - start_time
     print(f"Затраченное на работу скрипта время: {finish_time}")
-        # write_to_csv(result)
+    # write_to_csv(result)
 
+    # def get():
+    #     return 'catalog.xlsx'
+
+    
+def get_data():
+    return 'catalog.xlsx'
 
 if __name__ == '__main__':
     obj = Parser()
