@@ -3,9 +3,9 @@ from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 import aiohttp
 import asyncio
-from decouple import config
+# from decouple import config
 import time
-import csv
+# import csv
 import xlsxwriter 
 from bs4 import ResultSet
 
@@ -25,14 +25,14 @@ data = {
     'backurl': '/',
     'AUTH_FORM': 'Y',
     'TYPE': 'AUTH', 
-    'USER_LOGIN': config('LOGIN'),
-    'USER_PASSWORD': config('PASSWORD'),
+    'USER_LOGIN': '',
+    'USER_PASSWORD': '',
 }
 
 async def get_page_data(session,page):
     
     
-    url = f'https://diler.mosplitka.ru/catalog'
+    url = f'https://diler.mosplitka.ru/catalog/?PAGEN_1={page}'
     response = await session.post(url=url, data=data, headers=headers, timeout=3000)
     soup = BeautifulSoup(await response.text(), "lxml")
 
@@ -225,7 +225,7 @@ async def get_page_data(session,page):
         #         csv_writer.writeheader()
         #         csv_writer.writerows(data)
 
-        # # print(result)
+        # print(result)
         # write_to_csv(result)
         print(f"[INFO] Обработал страницу {page}")
 
@@ -274,7 +274,7 @@ async def gather_data():
         soup = BeautifulSoup(await response.text(), "lxml")
         # print(soup)
         pages_count = int(soup.find('div', class_='navigation-pages').find(id="navigation_1_next_page").find_previous_sibling().text)
-
+        # print(pages_count)
         tasks = []
 
         for page in range(1,pages_count + 1):
