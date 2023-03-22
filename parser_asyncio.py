@@ -3,9 +3,9 @@ from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 import aiohttp
 import asyncio
-# from decouple import config
+from decouple import config
 import time
-# import csv
+import csv
 import xlsxwriter 
 from bs4 import ResultSet
 
@@ -173,7 +173,13 @@ async def get_page_data(session,page):
                     in_stock_podolsk_q = a.text[-2:].strip()
 
                 for a in in_stock_krasnodar:
-                    in_stock_krasnodar = a.text  
+                    in_stock_krasnodar = a.text[:-2].strip()
+                    in_stock_krasnodar_q = a.text[-2:].strip()
+                    if in_stock_krasnodar == '':
+                        in_stock_krasnodar = "0"
+                        in_stock_krasnodar_q = "0"
+
+                
 
         
 
@@ -196,8 +202,10 @@ async def get_page_data(session,page):
                     'in_stock_podolsk': in_stock_podolsk,
                     'in_stock_podolsk_q': in_stock_podolsk_q,
                     'in_stock_krasnodar': in_stock_krasnodar,
+                    'in_stock_krasnodar_q': in_stock_krasnodar_q
                 }
-
+                # print(in_stock_krasnodar)
+                # print(in_stock_krasnodar_q)
                 result.append(obj)
 
         # def write_to_csv(data: list):
@@ -239,7 +247,7 @@ def write_to_excel(file_name, data):
     with xlsxwriter.Workbook(file_name) as workbook:
         ws = workbook.add_worksheet()
         bold = workbook.add_format({'bold': True})
-        headers = ['артикул', 'наименование товара', 'страна', 'производитель', 'коллекция', 'цвет', 'размер','поверхность' , 'упаковка квадратура', 'размерность упаковки', 'пакинг','упаковка кол-во','вес упаковки (кг)', 'цена базовая','размерность цены', 'наличие Подольск','размерность наличия', 'наличие Краснодар']        
+        headers = ['артикул', 'наименование товара', 'страна', 'производитель', 'коллекция', 'цвет', 'размер','поверхность' , 'упаковка квадратура', 'размерность упаковки', 'пакинг','упаковка кол-во','вес упаковки (кг)', 'цена базовая','размерность цены', 'наличие Подольск','размерность наличия П', 'наличие Краснодар', 'размерность наличия К']        
 
         for col, h in enumerate(headers):
             ws.write_string(0, col, h, cell_format=bold)
@@ -263,6 +271,7 @@ def write_to_excel(file_name, data):
                 ws.write_string(row, 15, item['in_stock_podolsk'])
                 ws.write_string(row, 16, item['in_stock_podolsk_q'])
                 ws.write_string(row, 17, item['in_stock_krasnodar'])
+                ws.write_string(row, 18, item['in_stock_krasnodar_q'])
 
 
 async def gather_data():
