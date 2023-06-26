@@ -161,9 +161,6 @@ async def get_page_data(session,page):
                 for a in packing_completeness_q:
                     packing_completeness_q = a.text[-5:].strip()
 
-                # for a in weight:
-                #     weight = a#.strip(' кг')
-
                 for a in price:
                     price = a.text.strip(' \n ')[:-9]
                     price_q = a.text.strip('\n ')[-9:]
@@ -178,10 +175,6 @@ async def get_page_data(session,page):
                     if in_stock_krasnodar == '':
                         in_stock_krasnodar = "0"
                         in_stock_krasnodar_q = "0"
-
-                
-
-        
 
                 obj = {
                     'articul': articul,
@@ -204,37 +197,8 @@ async def get_page_data(session,page):
                     'in_stock_krasnodar': in_stock_krasnodar,
                     'in_stock_krasnodar_q': in_stock_krasnodar_q
                 }
-                # print(in_stock_krasnodar)
-                # print(in_stock_krasnodar_q)
                 result.append(obj)
 
-        # def write_to_csv(data: list):
-        #     """ Запись данных в csv файл """
-        #     fieldnames = ['articul',
-        #                             'title',
-        #                             'country',
-        #                             'brand',
-        #                             'collection',
-        #                             'color',
-        #                             'size',
-        #                             'surface',
-        #                             'packing_size',
-        #                             'packing_size_q',
-        #                             'packing_completeness',
-        #                             'packing_completeness_q',
-        #                             'weight',
-        #                             'price',
-        #                             'price_q',
-        #                             'in_stock_podolsk',
-        #                             'in_stock_podolsk_q',
-        #                             'in_stock_krasnodar']
-        #     with open('test.csv', 'w') as file:
-        #         csv_writer = csv.DictWriter(file, fieldnames=fieldnames)
-        #         csv_writer.writeheader()
-        #         csv_writer.writerows(data)
-
-        # print(result)
-        # write_to_csv(result)
         print(f"[INFO] Обработал страницу {page}")
 
 
@@ -247,7 +211,7 @@ def write_to_excel(file_name, data):
     with xlsxwriter.Workbook(file_name) as workbook:
         ws = workbook.add_worksheet()
         bold = workbook.add_format({'bold': True})
-        headers = ['артикул', 'наименование товара', 'страна', 'производитель', 'коллекция', 'цвет', 'размер','поверхность' , 'упаковка квадратура', 'размерность упаковки', 'пакинг','упаковка кол-во','вес упаковки (кг)', 'цена базовая','размерность цены', 'наличие Подольск','размерность наличия П', 'наличие Краснодар', 'размерность наличия К']        
+        headers = ['артикул', 'наименование товара', 'страна', 'производитель', 'коллекция', 'цвет', 'размер','поверхность' , 'упаковка квадратура', 'размерность упаковки', 'пакинг','упаковка кол-во','вес упаковки (кг)', 'цена базовая','размерность цены', 'наличие Подольск','размерность наличия П', 'наличие Краснодар', 'размерность наличия К',]        
 
         for col, h in enumerate(headers):
             ws.write_string(0, col, h, cell_format=bold)
@@ -281,9 +245,7 @@ async def gather_data():
     async with aiohttp.ClientSession(trust_env=True) as session:
         response = await session.post(url=url, data=data, headers=headers)
         soup = BeautifulSoup(await response.text(), "lxml")
-        # print(soup)
         pages_count = int(soup.find('div', class_='navigation-pages').find(id="navigation_1_next_page").find_previous_sibling().text)
-        # print(pages_count)
         tasks = []
 
         for page in range(1,pages_count + 1):

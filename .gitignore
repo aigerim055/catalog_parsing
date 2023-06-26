@@ -2,3 +2,4 @@ venv/
 .~lock.catalog.xlsx#
 .env
 bot.py
+parser.py
