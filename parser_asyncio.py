@@ -3,9 +3,7 @@ from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 import aiohttp
 import asyncio
-from decouple import config
 import time
-import csv
 import xlsxwriter 
 from bs4 import ResultSet
 
@@ -35,6 +33,7 @@ async def get_page_data(session,page):
     url = f'https://diler.mosplitka.ru/catalog/?PAGEN_1={page}'
     response = await session.post(url=url, data=data, headers=headers, timeout=3000)
     soup = BeautifulSoup(await response.text(), "lxml")
+
 
     async with aiohttp.ClientSession(trust_env=True, timeout=3000) as session:
         
@@ -176,6 +175,21 @@ async def get_page_data(session,page):
                         in_stock_krasnodar = "0"
                         in_stock_krasnodar_q = "0"
 
+                second_url = f'https://mosplitka.ru/search/?q={articul}'
+                second_response = await session.get(url=second_url, headers=headers, timeout=3000)
+                second_soup = BeautifulSoup(await second_response.text(), "lxml")
+
+                try:
+                    new_cost = second_soup.find('span', class_='cost_value').text
+                except:
+                    new_cost = '0'
+
+                try:
+                    new_cost_q = second_soup.find('span', class_='cost_currency').text
+                except:
+                    new_cost_q = ''
+
+
                 obj = {
                     'articul': articul,
                     'title': title,
@@ -195,7 +209,9 @@ async def get_page_data(session,page):
                     'in_stock_podolsk': in_stock_podolsk,
                     'in_stock_podolsk_q': in_stock_podolsk_q,
                     'in_stock_krasnodar': in_stock_krasnodar,
-                    'in_stock_krasnodar_q': in_stock_krasnodar_q
+                    'in_stock_krasnodar_q': in_stock_krasnodar_q,
+                    'new_cost': new_cost,
+                    'new_cost_q': new_cost_q,
                 }
                 result.append(obj)
 
@@ -211,7 +227,7 @@ def write_to_excel(file_name, data):
     with xlsxwriter.Workbook(file_name) as workbook:
         ws = workbook.add_worksheet()
         bold = workbook.add_format({'bold': True})
-        headers = ['артикул', 'наименование товара', 'страна', 'производитель', 'коллекция', 'цвет', 'размер','поверхность' , 'упаковка квадратура', 'размерность упаковки', 'пакинг','упаковка кол-во','вес упаковки (кг)', 'цена базовая','размерность цены', 'наличие Подольск','размерность наличия П', 'наличие Краснодар', 'размерность наличия К',]        
+        headers = ['артикул', 'наименование товара', 'страна', 'производитель', 'коллекция', 'цвет', 'размер','поверхность' , 'упаковка квадратура', 'размерность упаковки', 'пакинг','упаковка кол-во','вес упаковки (кг)', 'цена базовая','размерность цены', 'наличие Подольск','размерность наличия П', 'наличие Краснодар', 'размерность наличия К', 'цена', 'размерность цены',]        
 
         for col, h in enumerate(headers):
             ws.write_string(0, col, h, cell_format=bold)
@@ -236,6 +252,9 @@ def write_to_excel(file_name, data):
                 ws.write_string(row, 16, item['in_stock_podolsk_q'])
                 ws.write_string(row, 17, item['in_stock_krasnodar'])
                 ws.write_string(row, 18, item['in_stock_krasnodar_q'])
+                ws.write_string(row, 19, item['new_cost'])
+                ws.write_string(row, 20, item['new_cost_q'])
+
 
 
 async def gather_data():
