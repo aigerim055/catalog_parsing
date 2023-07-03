@@ -29,13 +29,16 @@ data = {
 
 async def get_page_data(session,page):
     
-    
     url = f'https://diler.mosplitka.ru/catalog/?PAGEN_1={page}'
-    response = await session.post(url=url, data=data, headers=headers, timeout=3000)
+    try:
+        response = await session.post(url=url, data=data, headers=headers, timeout=4000)
+    except:
+        await asyncio.sleep(1.4)
+        response = await session.post(url=url, data=data, headers=headers, timeout=4000)
     soup = BeautifulSoup(await response.text(), "lxml")
 
 
-    async with aiohttp.ClientSession(trust_env=True, timeout=3000) as session:
+    async with aiohttp.ClientSession(trust_env=True, timeout=4000) as session:
         
         try:
             cards: ResultSet = soup.find('div', class_="catalog__inner-container catalog__inner-container--content").find_all('div', class_='catalog__result-item')
@@ -175,8 +178,13 @@ async def get_page_data(session,page):
                         in_stock_krasnodar = "0"
                         in_stock_krasnodar_q = "0"
 
+                # чтобы достать цену с др урла
                 second_url = f'https://mosplitka.ru/search/?q={articul}'
-                second_response = await session.get(url=second_url, headers=headers, timeout=3000)
+                try:
+                    second_response = await session.get(url=second_url, headers=headers, timeout=4000)
+                except:
+                    await asyncio.sleep(60)
+                    second_response = await session.get(url=second_url, headers=headers, timeout=4000)
                 second_soup = BeautifulSoup(await second_response.text(), "lxml")
 
                 try:
