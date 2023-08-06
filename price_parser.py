@@ -23,8 +23,8 @@ data = {
     'backurl': '/',
     'AUTH_FORM': 'Y',
     'TYPE': 'AUTH', 
-    'USER_LOGIN': '553801042839',
-    'USER_PASSWORD': '123456789',
+    'USER_LOGIN': '',
+    'USER_PASSWORD': '',
 }
 
 async def get_page_data(session,page):
