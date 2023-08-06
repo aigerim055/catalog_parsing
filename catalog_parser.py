@@ -7,8 +7,6 @@ import time
 import xlsxwriter 
 from bs4 import ResultSet
 
-
-
 start_time = time.time()
 result = []
 cur_time = datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')
@@ -23,8 +21,8 @@ data = {
     'backurl': '/',
     'AUTH_FORM': 'Y',
     'TYPE': 'AUTH', 
-    'USER_LOGIN': '',
-    'USER_PASSWORD': '',
+    'USER_LOGIN': '553801042839',
+    'USER_PASSWORD': '123456789',
 }
 
 async def get_page_data(session,page):
@@ -132,7 +130,6 @@ async def get_page_data(session,page):
                 except AttributeError:
                     in_stock_krasnodar = ''
 
-
                 for a in articul:
                     articul = a.text                    
 
@@ -178,27 +175,12 @@ async def get_page_data(session,page):
                         in_stock_krasnodar = "0"
                         in_stock_krasnodar_q = "0"
 
-                # чтобы достать цену с др урла
-                second_url = f'https://mosplitka.ru/search/?q={articul}'
-                try:
-                    second_response = await session.get(url=second_url, headers=headers, timeout=4000)
-                except:
-                    await asyncio.sleep(60)
-                    second_response = await session.get(url=second_url, headers=headers, timeout=4000)
-                second_soup = BeautifulSoup(await second_response.text(), "lxml")
 
-                try:
-                    new_cost = second_soup.find('span', class_='cost_value').text
-                except:
-                    new_cost = '0'
-
-                try:
-                    new_cost_q = second_soup.find('span', class_='cost_currency').text
-                except:
-                    new_cost_q = ''
-
-
-                obj = {
+                if in_stock_krasnodar != '0' and in_stock_podolsk != '0':
+                #     # print(f'[RPODUCT INFO] нету остатков у продукта - {articul}')
+                #     print('')
+                # else:
+                    obj = {
                     'articul': articul,
                     'title': title,
                     'country': country,
@@ -218,15 +200,15 @@ async def get_page_data(session,page):
                     'in_stock_podolsk_q': in_stock_podolsk_q,
                     'in_stock_krasnodar': in_stock_krasnodar,
                     'in_stock_krasnodar_q': in_stock_krasnodar_q,
-                    'new_cost': new_cost,
-                    'new_cost_q': new_cost_q,
-                }
-                result.append(obj)
+                    }
+                    result.append(obj)
+        # write_to_excel(OUT_XLSX_FILENAME, result)
+        # print('*' * 30)
+        print(f"[INFO - личный кабинет] Обработал страницу {page}")
+        # print('*' * 30)
 
-        print(f"[INFO] Обработал страницу {page}")
 
-
-OUT_XLSX_FILENAME = f'catalog_{cur_time}.xlsx'
+OUT_XLSX_FILENAME = f'test.xlsx'
 def write_to_excel(file_name, data):
     """ Запись данных в xlsx файл """
     if not len(data):
@@ -235,7 +217,7 @@ def write_to_excel(file_name, data):
     with xlsxwriter.Workbook(file_name) as workbook:
         ws = workbook.add_worksheet()
         bold = workbook.add_format({'bold': True})
-        headers = ['артикул', 'наименование товара', 'страна', 'производитель', 'коллекция', 'цвет', 'размер','поверхность' , 'упаковка квадратура', 'размерность упаковки', 'пакинг','упаковка кол-во','вес упаковки (кг)', 'цена базовая','размерность цены', 'наличие Подольск','размерность наличия П', 'наличие Краснодар', 'размерность наличия К', 'цена', 'размерность цены',]        
+        headers = ['артикул', 'наименование товара', 'страна', 'производитель', 'коллекция', 'цвет', 'размер','поверхность' , 'упаковка квадратура', 'размерность упаковки', 'пакинг','упаковка кол-во','вес упаковки (кг)', 'цена базовая','размерность цены', 'наличие Подольск','размерность наличия П', 'наличие Краснодар', 'размерность наличия К',]        
 
         for col, h in enumerate(headers):
             ws.write_string(0, col, h, cell_format=bold)
@@ -260,8 +242,6 @@ def write_to_excel(file_name, data):
                 ws.write_string(row, 16, item['in_stock_podolsk_q'])
                 ws.write_string(row, 17, item['in_stock_krasnodar'])
                 ws.write_string(row, 18, item['in_stock_krasnodar_q'])
-                ws.write_string(row, 19, item['new_cost'])
-                ws.write_string(row, 20, item['new_cost_q'])
 
 
 
@@ -275,19 +255,22 @@ async def gather_data():
         pages_count = int(soup.find('div', class_='navigation-pages').find(id="navigation_1_next_page").find_previous_sibling().text)
         tasks = []
 
-        for page in range(1,pages_count + 1):
+        for page in range(1,100 + 1):
             await asyncio.sleep(1.4)
             task = asyncio.create_task(get_page_data(session, page))
             tasks.append(task)
         await asyncio.gather(*tasks)
 
 
-def main():
+def main_catalog():
     asyncio.run(gather_data())
-    write_to_excel(OUT_XLSX_FILENAME, result)
+    
     finish_time = time.time() - start_time
     print(f"Затраченное на работу скрипта время: {finish_time}")
 
+def get_result():
+    return result
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
+    
